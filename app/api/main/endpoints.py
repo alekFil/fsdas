@@ -1,10 +1,9 @@
 from fastapi import APIRouter
-from fastapi.security import OAuth2PasswordBearer
 
+from app.api.utils.auth_check import check_auth  # Импортируем глобальную проверку
 from app.services.school_matcher.school_matcher import init_school_matcher
 
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 
 
 # Загрузка модели и словаря при старте приложения
@@ -19,4 +18,5 @@ def on_startup():
 # Эндпоинт для проверки статуса
 @router.get("/status")
 async def get_status():
+    check_auth()  # Проверяем, нужно ли выполнять авторизацию
     return {"status": "Приложение работает", "detail": "Все системы в норме"}

@@ -2,9 +2,9 @@ import os
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 
+from app.api.utils.auth_check import check_auth  # Импортируем глобальную проверку
 from app.core.database import DatabaseConnection
 from app.services.school_matcher.school_matcher import SchoolMatcher
 
@@ -19,7 +19,6 @@ class MatchResponse(BaseModel):
 
 
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 db = DatabaseConnection(DATABASE_URL)
@@ -30,7 +29,7 @@ school_marcher = SchoolMatcher(engine)
 @router.post("/get_school_matches/", response_model=List[MatchResponse])
 def get_school_matches(
     request: SchoolRequest,
-    token: str = Depends(oauth2_scheme),
+    token: str = Depends(check_auth),
 ) -> List[MatchResponse]:
     """
     Функция для нахождения соответствие названия школы записи в базе данных.
@@ -71,7 +70,7 @@ def get_school_matches(
 
 
 @router.post("/reload_resources/")
-def reload_resources(token: str = Depends(oauth2_scheme)):
+def reload_resources(token: str = Depends(check_auth)):
     """
     Эндпоинт для обновления ресурсов SchoolMatcher.
     """

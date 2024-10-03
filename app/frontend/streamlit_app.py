@@ -37,13 +37,25 @@ def setup_config() -> None:
 class StreamlitService:
     def __init__(self, api_url: str):
         self.api_url = api_url
+        self.auth_disabled = (
+            os.getenv("DISABLE_AUTH", "false").lower() == "true"
+        )  # Проверяем, отключена ли авторизация
         # Используем st.session_state для хранения токена и флага авторизации
         if "token" not in st.session_state:
             st.session_state["token"] = None
         if "authenticated" not in st.session_state:
-            st.session_state["authenticated"] = False
+            if self.auth_disabled:
+                st.session_state["authenticated"] = True
+            else:
+                st.session_state["authenticated"] = False
 
     def login(self):
+        if self.auth_disabled:
+            st.session_state["authenticated"] = (
+                True  # Автоматическая авторизация, если отключена
+            )
+            return
+
         st.title("Авторизация")
 
         # Форма для ввода логина и пароля
@@ -70,8 +82,12 @@ class StreamlitService:
         return False
 
     def get_school_matches(self, school_name):
-        if st.session_state["token"]:
-            headers = {"Authorization": f"Bearer {st.session_state['token']}"}
+        if st.session_state["token"] or self.auth_disabled:
+            headers = (
+                {"Authorization": f"Bearer {st.session_state['token']}"}
+                if st.session_state["token"]
+                else {}
+            )
             response = requests.post(
                 f"{self.api_url}/data/get_school_matches",
                 json={"school_name": school_name},
@@ -86,8 +102,12 @@ class StreamlitService:
         return None
 
     def reload_resources(self):
-        if st.session_state["token"]:
-            headers = {"Authorization": f"Bearer {st.session_state['token']}"}
+        if st.session_state["token"] or self.auth_disabled:
+            headers = (
+                {"Authorization": f"Bearer {st.session_state['token']}"}
+                if st.session_state["token"]
+                else {}
+            )
             response = requests.post(
                 f"{self.api_url}/data/reload_resources/",
                 headers=headers,
@@ -103,7 +123,7 @@ class StreamlitService:
     def run(self):
         setup_config()
         # Если есть токен в session_state или пользователь авторизован, показываем анализ
-        if st.session_state["token"] and st.session_state["authenticated"]:
+        if st.session_state["authenticated"]:
             st.title("🔍 Сервис анализа данных платформы МойЧемпион.РФ ⛸️")
             tab1, tab2 = st.tabs(["Школы", "Другие виды анализа"])
 
