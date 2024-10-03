@@ -1,0 +1,7 @@
+.pytest_cache
+run_local_windows.bat
+run_tests.bat
+__pycache__
+.venv
+stats
+resources
