@@ -7,12 +7,17 @@ import pymorphy3
 from nltk.tokenize import word_tokenize
 from num2words import num2words
 
+from app.core.logger import setup_logger
+
 # Загружаем необходимые ресурсы
 nltk.download("punkt", quiet=True)
 nltk.download("punkt_tab", quiet=True)
 
 # Инициализация морфологического анализатора для русского языка
 morph = pymorphy3.MorphAnalyzer()
+
+# Инициализируем логгер для school_matcher
+logger = setup_logger("school_matcher", "app/logs/school_matcher/logs.log")
 
 
 def simple_preprocess_text(text: str) -> str:
@@ -159,7 +164,7 @@ def abbr_preprocess_text(
         abbr = abbr.lower()
         if abbr not in abbreviation_dict:
             unknown_abbr.append(abbr.upper())
-            print(unknown_abbr)
+            logger.info(unknown_abbr)
             if remove_unknown_abbr:
                 name = re.sub(r"\b" + re.escape(abbr.upper()) + r"\b", " ", name)
 

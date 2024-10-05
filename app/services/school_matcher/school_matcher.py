@@ -12,6 +12,7 @@ from sklearn.metrics.pairwise import (
 )
 from sqlalchemy.orm import sessionmaker
 
+from app.core.logger import setup_logger
 from app.services.school_matcher.utils.load_functions import load_resources
 from app.services.school_matcher.utils.preprocess_functions import (
     abbr_preprocess_text,
@@ -22,6 +23,9 @@ from app.services.school_matcher.utils.preprocess_functions import (
     replace_numbers_with_text,
     simple_preprocess_text,
 )
+
+# Инициализируем логгер для school_matcher
+logger = setup_logger("school_matcher", "app/logs/school_matcher/logs.log")
 
 
 def calculate_similarity(
@@ -178,7 +182,7 @@ class SchoolMatcher:
         Проверяет, существует ли ресурсная директория и содержатся ли там необходимые файлы.
         Если файлы отсутствуют, копирует их из директории original_resources.
         """
-        print("КОпирование")
+        logger.info("Copy resources")
         if not os.path.exists(self.resources_dir):
             os.makedirs(self.resources_dir)
 
@@ -188,15 +192,17 @@ class SchoolMatcher:
             original_file = os.path.join(self.original_dir, file)
             destination_file = os.path.join(self.resources_dir, file)
             if not os.path.exists(destination_file):
-                print(f"Копируем {file} из {self.original_dir} в {self.resources_dir}")
+                logger.debug(
+                    f"Copy {file} from {self.original_dir} " f"to {self.resources_dir}"
+                )
                 shutil.copy(original_file, destination_file)
             else:
-                print(
-                    f"Файл {file} уже существует в {self.resources_dir}, копирование пропущено."
+                logger.debug(
+                    "File {file} is existed in {self.resources_dir}, coping is passed"
                 )
 
     def load_resources(self):
-        print("Загшрзка")
+        logger.info("Load resources")
         self.vectorizer = load_resources("vectorizer", "joblib")
         self.reference_vec = load_resources("reference_vec", "joblib")
         self.reference_id = load_resources("reference_id", "joblib")
@@ -206,7 +212,7 @@ class SchoolMatcher:
         self.region_dict = load_resources("region_dict", "joblib")
         self.blacklist_opf = load_resources("blacklist_opf", "joblib")
         self.stop_words_list = load_resources("stop_words_list", "joblib")
-        print("Ресурсы загружены/обновлены")
+        logger.info("Resources is loaded/updated")
 
     def find_school_match(self, school_name):
         """
@@ -240,7 +246,12 @@ class SchoolMatcher:
             x = simple_preprocess_text(x)
             x = replace_numbers_with_text(x)
             x = abbr_preprocess_text(
-                x, self.abbreviations_dict, False, False, True, False
+                x,
+                self.abbreviations_dict,
+                False,
+                False,
+                True,
+                False,
             )
             x = process_region(x, self.region_dict)
             x = remove_substrings(x, self.blacklist_opf)
@@ -458,8 +469,3 @@ class SchoolMatcher:
         )
 
         return True
-
-
-def init_school_matcher():
-    """Инициализирует создание референса из базы данных"""
-    pass

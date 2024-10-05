@@ -2,6 +2,10 @@ import os
 
 import requests
 import streamlit as st
+from logger import setup_logger
+
+# Инициализируем логгер для frontend
+logger = setup_logger("frontend", "app/logs/frontend/logs.log")
 
 
 def setup_config() -> None:
@@ -51,9 +55,8 @@ class StreamlitService:
 
     def login(self):
         if self.auth_disabled:
-            st.session_state["authenticated"] = (
-                True  # Автоматическая авторизация, если отключена
-            )
+            # Автоматическая авторизация, если отключена
+            st.session_state["authenticated"] = True
             return
 
         st.title("Авторизация")
@@ -76,6 +79,7 @@ class StreamlitService:
     def get_token(self, username, password):
         data = {"username": username, "password": password}
         response = requests.post(f"{self.api_url}/auth/token", data=data)
+        logger.info(f"Auth attempt: {response.json()}")
         if response.status_code == 200:
             st.session_state["token"] = response.json()["access_token"]
             return True
@@ -93,6 +97,7 @@ class StreamlitService:
                 json={"school_name": school_name},
                 headers=headers,
             )
+            st.write(headers)
             if response.status_code == 200:
                 return response.json()
             else:

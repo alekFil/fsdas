@@ -5,3 +5,5 @@ __pycache__
 .venv
 stats
 resources
+logs
+tests/run_tests.ps1

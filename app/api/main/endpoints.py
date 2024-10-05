@@ -1,22 +1,14 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
-from app.api.utils.auth_check import check_auth  # Импортируем глобальную проверку
-from app.services.school_matcher.school_matcher import init_school_matcher
+from app.core.auth import AuthDependency
 
 router = APIRouter()
 
-
-# Загрузка модели и словаря при старте приложения
-@router.on_event("startup")
-def on_startup():
-    try:
-        init_school_matcher()
-    except Exception as e:
-        print(f"Failed to init SchoolMatcher: {e}")
+# Инициализируем зависимость для авторизации
+auth_dependency = AuthDependency()
 
 
 # Эндпоинт для проверки статуса
 @router.get("/status")
-async def get_status():
-    check_auth()  # Проверяем, нужно ли выполнять авторизацию
+async def get_status(token: str = Depends(auth_dependency)):
     return {"status": "Приложение работает", "detail": "Все системы в норме"}
