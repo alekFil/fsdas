@@ -7,3 +7,5 @@ stats
 resources
 logs
 tests/run_tests.ps1
+app/services/school_matcher/prepare_resources
+app/services/school_matcher/archive_resources

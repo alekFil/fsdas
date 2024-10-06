@@ -250,7 +250,7 @@ class SchoolMatcher:
                 self.abbreviations_dict,
                 False,
                 False,
-                True,
+                False,
                 False,
             )
             x = process_region(x, self.region_dict)
@@ -276,7 +276,7 @@ class SchoolMatcher:
             x = simple_preprocess_text(x)
             x = replace_numbers_with_text(x)
             x = abbr_preprocess_text(
-                x, self.abbreviations_dict, False, False, True, False
+                x, self.abbreviations_dict, False, False, False, False
             )
             return process_region(x, self.region_dict, return_region=True)
 
@@ -378,6 +378,14 @@ class SchoolMatcher:
             "ямало ненецкий ао",
             "ямало ненецкий автономный округ",
         )
+        data_reference.region = data_reference.region.str.replace(
+            "бранская область",
+            "брянская область",
+        )
+        data_reference.region = data_reference.region.str.replace(
+            "воронежская обл",
+            "воронежская область",
+        )
 
         data_reference = data_reference[~data_reference.duplicated(subset="id")]
         data_reference = data_reference[~(data_reference.id == 99999)]
@@ -390,7 +398,7 @@ class SchoolMatcher:
         )
         data_reference.processed_name = data_reference.processed_name.apply(
             abbr_preprocess_text,
-            args=(self.abbreviations_dict, False, False, True, False),
+            args=(self.abbreviations_dict, False, False, False, False),
         )
         data_reference.processed_name = data_reference.processed_name.apply(
             process_region, args=(list(self.region_dict.keys()),)
@@ -424,7 +432,7 @@ class SchoolMatcher:
 
         data_train.processed_name = data_train.processed_name.apply(
             abbr_preprocess_text,
-            args=(self.abbreviations_dict, False, False, True, False),
+            args=(self.abbreviations_dict, False, False, False, False),
         )
         data_train["region"] = data_train.processed_name.apply(
             process_region, args=(list(self.region_dict.keys()), True)

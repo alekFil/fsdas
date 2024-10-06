@@ -34,6 +34,9 @@ def simple_preprocess_text(text: str) -> str:
     str
         Предобработанный текст.
     """
+    if text is None:
+        text = ""
+
     # Удаляем служебные символы (перенос строки, табуляция и т.д.)
     text = re.sub(r"[\n\t\r]", " ", text)
 
